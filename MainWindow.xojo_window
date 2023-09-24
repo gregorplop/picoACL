@@ -1749,14 +1749,95 @@ Begin DesktopWindow MainWindow
          TabPanelIndex   =   3
          TabStop         =   True
          Text            =   "picoACL : A minimal, SQLite-based ACL implementation"
-         TextAlignment   =   2
+         TextAlignment   =   1
          TextColor       =   &c00000000
          Tooltip         =   ""
          Top             =   58
          Transparent     =   False
          Underline       =   False
          Visible         =   True
+         Width           =   741
+      End
+      Begin DesktopTextArea AboutText
+         AllowAutoDeactivate=   True
+         AllowFocusRing  =   True
+         AllowSpellChecking=   False
+         AllowStyledText =   True
+         AllowTabs       =   False
+         BackgroundColor =   &cFFFFFF
+         Bold            =   False
+         Enabled         =   True
+         FontName        =   "System"
+         FontSize        =   14.0
+         FontUnit        =   0
+         Format          =   ""
+         HasBorder       =   False
+         HasHorizontalScrollbar=   False
+         HasVerticalScrollbar=   True
+         Height          =   600
+         HideSelection   =   True
+         Index           =   -2147483648
+         InitialParent   =   "MainPanel"
+         Italic          =   False
+         Left            =   40
+         LineHeight      =   0.0
+         LineSpacing     =   1.0
+         LockBottom      =   True
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   True
+         LockTop         =   True
+         MaximumCharactersAllowed=   0
+         Multiline       =   True
+         ReadOnly        =   True
+         Scope           =   2
+         TabIndex        =   1
+         TabPanelIndex   =   3
+         TabStop         =   True
+         Text            =   "picoACL is a mechanism providing user Authentication and resource access Authorization.\r\n\r\nIn short, it maintains data structures that enable answering two fundamental questions:\r\n1 - Is a User who she claims to be ? (based on a password match)\r\n2 - Can I grant a User a specific Right over a specific Resource, within the context of a Service ?\r\n\r\n* Major characteristics of picoACL :\r\n\r\n- Minimalist design: Keeps only the necessary information for implementing its functionality. Don't expect extra features, that's on you.\r\n- File-based: Everything is kept in a single SQLite database file.\r\n- Implements group inheritance: There are login roles (users) and group roles (groups). Member roles inherit the rights of parent roles.\r\n- Simple dependency: It is a single class you import into your project.\r\n- Application agnostic: As long as you can map your business logic entities to its own, it doesn't care what your application is or does.\r\n\r\n- It never keeps the database file open: Every public method opens its own session to the db and closes it when it's done.\r\n- Database access does not make use of the WAL mode.\r\n- Supports encryption of SQLite database file.\r\n- It does not store user passwords, calculates and compares SHA3-256 hashes of the user name and password combined.\r\n- The Demo Project serves as an example on how to use picoACL and as an ACL management console.\r\n- Limitations inherent to SQLite databases apply. Eg. keeping the ACL file on a network file system is bad practice.\r\n- Public methods raise runtime exceptions when there is an error. Error messages are rudimentary, you need to parse them somehow.\r\n\r\n* picoACL concepts and entities :\r\n\r\n- Roles are users and groups. Login roles are Users. Authentication and Authorization only apply to login roles.\r\n- Rights are defined actions that users can be authorized to perform, within the context of a specific Service. System right <ANYRIGHT> represents all rights.\r\n- Memberships is the way to declare any role inheriting permissions from a group role. By design choice, a role cannot inherit from a login role.\r\n- ACL records associate a Role, an registered Right and a Resource. The Resource is a free-form piece of information , can be whatever makes sense to your application.\r\n- In a manner similar to Rights, there is a system Resource to represent all Resources, called <ANYRESOURCE>\r\n- An ACL record can grant permission (deny=false) or explicitly deny permission (deny=true). This feature gives some extra flexibility in implementing access policies.\r\n\r\n* Usability Hints : \r\n\r\n- Right clicking on most fields, opens a helper contextual menu.\r\n- Clicking on an ACL record, also highlights the associated Right and Role\r\n- Creating a new ACL list, you can choose to populate it with sample records. These map to fswebapi project functionality (https://github.com/gregorplop/fswebapi)\r\n\r\n* References / Attributions\r\n\r\n- Project repository : https://github.com/gregorplop/picoACL\r\n- ACL Demo Project icon from flaticon.com\r\n"
+         TextAlignment   =   1
+         TextColor       =   &c000000
+         Tooltip         =   ""
+         Top             =   110
+         Transparent     =   False
+         Underline       =   False
+         UnicodeMode     =   1
+         ValidationMask  =   ""
+         Visible         =   True
          Width           =   882
+      End
+      Begin DesktopLabel AbouVerHerader
+         AllowAutoDeactivate=   True
+         Bold            =   True
+         Enabled         =   True
+         FontName        =   "System"
+         FontSize        =   18.0
+         FontUnit        =   0
+         Height          =   40
+         Index           =   -2147483648
+         InitialParent   =   "MainPanel"
+         Italic          =   False
+         Left            =   793
+         LockBottom      =   False
+         LockedInPosition=   False
+         LockLeft        =   False
+         LockRight       =   True
+         LockTop         =   True
+         Multiline       =   False
+         Scope           =   2
+         Selectable      =   False
+         TabIndex        =   2
+         TabPanelIndex   =   3
+         TabStop         =   True
+         Text            =   "Ver. "
+         TextAlignment   =   3
+         TextColor       =   &c00000000
+         Tooltip         =   ""
+         Top             =   58
+         Transparent     =   False
+         Underline       =   False
+         Visible         =   True
+         Width           =   129
       End
    End
 End
@@ -2634,6 +2715,13 @@ End
 		  call ACLsList.ShowDbTable(err , GetACLFile , ACLFileEncryptionPassword.Text)
 		  
 		  if me.Value = true then SupplementACLList
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events AbouVerHerader
+	#tag Event
+		Sub Opening()
+		  me.Text = me.Text + App.MajorVersion.ToString + "." + app.MinorVersion.ToString + "." + app.BugVersion.ToString + "." + app.NonReleaseVersion.ToString
 		End Sub
 	#tag EndEvent
 #tag EndEvents
