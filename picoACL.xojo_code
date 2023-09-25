@@ -327,6 +327,36 @@ Protected Class picoACL
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub DeleteACLRecord(ACLRecordID as Integer)
+		  dim rows as RowSet
+		  
+		  try
+		    
+		    dbReconnect
+		    
+		    // look if the ACL record exists - unlike a single DELETE, we want to fail if it doesn't exist
+		    rows = db.SelectSQL("SELECT COUNT(*) FROM acl WHERE rowid  = ?" , ACLRecordID)
+		    
+		    if rows.ColumnAt(0).IntegerValue <> 1 then
+		      db.Close
+		      Raise new RuntimeException("ACL Record not resolved." , 18)
+		    end if
+		    
+		    // let's delete the ACL record
+		    
+		    db.ExecuteSQL("DELETE FROM acl WHERE rowid = ?" , ACLRecordID)
+		    
+		    db.Close
+		    
+		  Catch e as DatabaseException
+		    db.Close
+		    Raise new RuntimeException("Error Deleting ACL record: " + e.Message , 19)
+		  end try
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub DeleteRight(Service as String, Right as string)
 		  dim rightID as Integer
 		  dim rows as RowSet
@@ -612,7 +642,8 @@ Protected Class picoACL
 		15 Authorization Error
 		16 Error Deleting Right
 		17 Error Finding Role Name
-		
+		18 ACL Record not resolved
+		19 Error Deleting ACL record
 		
 		
 	#tag EndNote

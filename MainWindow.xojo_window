@@ -51,7 +51,7 @@ Begin DesktopWindow MainWindow
       Top             =   20
       Transparent     =   False
       Underline       =   False
-      Value           =   2
+      Value           =   0
       Visible         =   True
       Width           =   922
       Begin DesktopButton CreateMembershipBtn
@@ -2099,27 +2099,24 @@ End
 		Function ContextualMenuItemSelected(selectedItem As DesktopMenuItem) As Boolean
 		  dim acl as new picoACL(GetACLFile , ACLFileEncryptionPassword.Text)
 		  
-		  dim member_Name as String
-		  dim memberOf_Name as String
-		  
 		  select case selectedItem.Text
 		    
 		  case "Remove Membership"
 		    
 		    try
 		      
+		      dim member , memberOf as String
 		      
-		      // TODO
-		      MessageBox "TODO"
+		      member = acl.GetRolenameFromID(MembershipsList.CellTextAt(selectedItem.Tag.IntegerValue , 1).NthField(" - " , 1).ToInteger)
+		      memberOf = acl.GetRolenameFromID(MembershipsList.CellTextAt(selectedItem.Tag.IntegerValue , 2).NthField(" - " , 1).ToInteger)
 		      
+		      acl.RemoveMembership(member, memberOf)
 		      
 		    Catch e as RuntimeException
 		      
 		      MessageBox e.Message
 		      
 		    end try
-		    
-		    
 		    
 		  end Select
 		  
@@ -2359,18 +2356,13 @@ End
 		    
 		    try
 		      
-		      
-		      // TODO
-		      MessageBox "TODO"
-		      
+		      acl.DeleteACLRecord(ACLsList.CellTextAt(selectedItem.Tag.IntegerValue , 0).ToInteger)
 		      
 		    Catch e as RuntimeException
 		      
 		      MessageBox e.Message
 		      
 		    end try
-		    
-		    
 		    
 		  end Select
 		  
