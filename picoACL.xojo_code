@@ -621,6 +621,27 @@ Protected Class picoACL
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Function Validate() As Boolean
+		  // is it a readable database?
+		  
+		  try
+		    
+		    dbReconnect
+		    
+		  Catch e as DatabaseException
+		    
+		    Return false
+		    
+		  end try
+		  
+		  db.Close
+		  
+		  Return true
+		  
+		End Function
+	#tag EndMethod
+
 
 	#tag Note, Name = Error Codes
 		Error codes of RuntimeExceptions
