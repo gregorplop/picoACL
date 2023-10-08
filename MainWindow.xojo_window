@@ -51,7 +51,7 @@ Begin DesktopWindow MainWindow
       Top             =   20
       Transparent     =   False
       Underline       =   False
-      Value           =   0
+      Value           =   1
       Visible         =   True
       Width           =   922
       Begin DesktopButton CreateMembershipBtn
@@ -1111,7 +1111,7 @@ Begin DesktopWindow MainWindow
          FontName        =   "System"
          FontSize        =   14.0
          FontUnit        =   0
-         Height          =   159
+         Height          =   172
          Index           =   -2147483648
          InitialParent   =   "MainPanel"
          Italic          =   False
@@ -1149,7 +1149,7 @@ Begin DesktopWindow MainWindow
             Index           =   -2147483648
             InitialParent   =   "AuthorizeGroup"
             Italic          =   False
-            Left            =   384
+            Left            =   385
             LockBottom      =   False
             LockedInPosition=   False
             LockLeft        =   True
@@ -1166,7 +1166,7 @@ Begin DesktopWindow MainWindow
             TextAlignment   =   0
             TextColor       =   &c000000
             Tooltip         =   ""
-            Top             =   250
+            Top             =   265
             Transparent     =   False
             Underline       =   False
             ValidationMask  =   ""
@@ -1187,19 +1187,19 @@ Begin DesktopWindow MainWindow
             Index           =   -2147483648
             InitialParent   =   "AuthorizeGroup"
             Italic          =   False
-            Left            =   384
-            LockBottom      =   True
+            Left            =   385
+            LockBottom      =   False
             LockedInPosition=   False
-            LockLeft        =   False
-            LockRight       =   True
-            LockTop         =   False
+            LockLeft        =   True
+            LockRight       =   False
+            LockTop         =   True
             MacButtonStyle  =   0
             Scope           =   0
             TabIndex        =   2
             TabPanelIndex   =   2
             TabStop         =   True
             Tooltip         =   ""
-            Top             =   291
+            Top             =   302
             Transparent     =   False
             Underline       =   False
             Visible         =   True
@@ -1223,7 +1223,7 @@ Begin DesktopWindow MainWindow
             Index           =   -2147483648
             InitialParent   =   "AuthorizeGroup"
             Italic          =   False
-            Left            =   60
+            Left            =   61
             LockBottom      =   False
             LockedInPosition=   False
             LockLeft        =   True
@@ -1240,7 +1240,7 @@ Begin DesktopWindow MainWindow
             TextAlignment   =   0
             TextColor       =   &c000000
             Tooltip         =   ""
-            Top             =   250
+            Top             =   265
             Transparent     =   False
             Underline       =   False
             ValidationMask  =   ""
@@ -1265,7 +1265,7 @@ Begin DesktopWindow MainWindow
             Index           =   -2147483648
             InitialParent   =   "AuthorizeGroup"
             Italic          =   False
-            Left            =   222
+            Left            =   223
             LockBottom      =   False
             LockedInPosition=   False
             LockLeft        =   True
@@ -1282,7 +1282,7 @@ Begin DesktopWindow MainWindow
             TextAlignment   =   0
             TextColor       =   &c000000
             Tooltip         =   ""
-            Top             =   250
+            Top             =   265
             Transparent     =   False
             Underline       =   False
             ValidationMask  =   ""
@@ -1330,6 +1330,39 @@ Begin DesktopWindow MainWindow
             ValidationMask  =   ""
             Visible         =   True
             Width           =   150
+         End
+         Begin DesktopLabel AuthNoUserLabel
+            AllowAutoDeactivate=   True
+            Bold            =   False
+            Enabled         =   True
+            FontName        =   "System"
+            FontSize        =   14.0
+            FontUnit        =   0
+            Height          =   40
+            Index           =   -2147483648
+            InitialParent   =   "AuthorizeGroup"
+            Italic          =   False
+            Left            =   222
+            LockBottom      =   False
+            LockedInPosition=   False
+            LockLeft        =   True
+            LockRight       =   False
+            LockTop         =   True
+            Multiline       =   True
+            Scope           =   2
+            Selectable      =   False
+            TabIndex        =   6
+            TabPanelIndex   =   2
+            TabStop         =   True
+            Text            =   "No User value tests whether resource requires User authorization at all."
+            TextAlignment   =   0
+            TextColor       =   &c000000
+            Tooltip         =   ""
+            Top             =   213
+            Transparent     =   False
+            Underline       =   False
+            Visible         =   True
+            Width           =   312
          End
       End
       Begin DesktopGroupBox AuthenticateGroup
@@ -2693,7 +2726,7 @@ End
 		    
 		    
 		    call MembershipsList.ShowDbTable(err , GetACLFile , ACLFileEncryptionPassword.Text)
-		    
+		    if MembershipsSupplementRoleIDsWNamesCheck.Value  = true then SupplementMembershipsList
 		    
 		    try
 		      
@@ -2729,7 +2762,7 @@ End
 		    
 		    
 		    call ACLsList.ShowDbTable(err , GetACLFile , ACLFileEncryptionPassword.Text)
-		    
+		    if ACLSupplementRoleIDsWNamesCheck.Value = true then SupplementACLList
 		    
 		  end if
 		End Sub

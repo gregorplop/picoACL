@@ -8,8 +8,9 @@ Protected Class picoACL
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function AuthenticateUser(UserName as String, password as string) As Boolean
+		Function AuthenticateUser(UserName as String, password as string, optional KeepDbOpen as Boolean = false) As Boolean
 		  // generates runtime exception if error
+		  // Default Daisy Chain mode is stand-alone: open and close db session
 		  
 		  try
 		    
@@ -19,7 +20,7 @@ Protected Class picoACL
 		    
 		    dim rowCount as Integer = rows.RowCount
 		    
-		    db.Close
+		    if not KeepDbOpen then dbClose
 		    
 		    if rowCount = 1 then
 		      Return true
@@ -28,7 +29,7 @@ Protected Class picoACL
 		    end if
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose // always close when error
 		    Raise new RuntimeException("Error Authenticating User: " + e.Message , 9)
 		  end try
 		  
@@ -49,10 +50,11 @@ Protected Class picoACL
 		    dbReconnect
 		    
 		    // look for the user ID
+		    
 		    rows = db.SelectSQL("SELECT rowid FROM roles WHERE name = ? AND loginrole = TRUE AND active = TRUE" , UserName)
 		    
 		    if rows.RowCount <> 1 then 
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Role not resolved." , 4)
 		    end if
 		    
@@ -68,7 +70,7 @@ Protected Class picoACL
 		    next 
 		    
 		    if RightIDs.LastIndex < 0 then 
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Right not resolved." , 7)
 		    end if
 		    
@@ -88,10 +90,10 @@ Protected Class picoACL
 		    rows = db.SelectSQL(SurveyACLquery , Resource , ANY_RESOURCE , true) // look for inverse grants (deny=true)
 		    Deny = if(rows.ColumnAt(0).IntegerValue = 0 , False , true)
 		    
-		    db.Close
+		    dbClose
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Authorization Error: " + e.Message , 15)
 		  end try
 		  
@@ -118,6 +120,7 @@ Protected Class picoACL
 		  dbPasswd = passwd
 		  
 		  db = new SQLiteDatabase
+		  Connected = false
 		  
 		  
 		End Sub
@@ -128,35 +131,24 @@ Protected Class picoACL
 		  // an ACL is assigning a RIGHT to a ROLE, 
 		  // for a RESOURCE, made available through a SERVICE
 		  
-		  // null RESOURCE means ALL RESOURCES
-		  
 		  dim rows as RowSet
 		  dim RoleID as Integer
 		  dim RightID as Integer
-		  dim NullableResource as Variant
-		  
-		  if Resource.Trim <> "" then NullableResource = Resource
 		  
 		  try
 		    
 		    dbReconnect
 		    
 		    // look for the role
-		    rows = db.SelectSQL("SELECT rowid FROM roles WHERE name = ?" , RoleName)
 		    
-		    if rows.RowCount <> 1 then 
-		      db.Close
-		      Raise new RuntimeException("Role not resolved." , 4)
-		    end if
-		    
-		    roleID = rows.Column("rowid").IntegerValue
+		    roleID = GetRoleIDFromName(RoleName , true)
 		    
 		    // we have the role id, go on to find right id
 		    
 		    rows = db.SelectSQL("SELECT rowid FROM rights WHERE service = ? AND right = ?" , Service , Right)
 		    
 		    if rows.RowCount <> 1 then 
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Right not resolved." , 7)
 		    end if
 		    
@@ -164,13 +156,12 @@ Protected Class picoACL
 		    
 		    // create the ACL record 
 		    
-		    db.ExecuteSQL("INSERT INTO acl (roleid , rightid , resource , deny) VALUES (? , ? , ? , ?)" , RoleID , RightID , NullableResource , Deny)
+		    db.ExecuteSQL("INSERT INTO acl (roleid , rightid , resource , deny) VALUES (? , ? , ? , ?)" , RoleID , RightID , Resource , Deny)
 		    
-		    db.Close
-		    
+		    dbClose
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error creating ACL: " + e.Message , 8)
 		  end try
 		  
@@ -200,7 +191,14 @@ Protected Class picoACL
 		  try
 		    
 		    newdb.CreateDatabase
-		    newdb.ExecuteSQL(InitStatements)
+		    newdb.ExecuteSQL(InitTables)
+		    
+		    // add any-user system role: resources authorized to this system role should provide correct credentials of ANY existing & active user
+		    newdb.ExecuteSQL("INSERT INTO roles (rowid , name , active , loginrole) VALUES (? , ? , TRUE , FALSE)" , ANY_USER_id , ANY_USER_name)
+		    
+		    // add no-auth system role: resources authorized to this system role should not expect or ask for credentials
+		    newdb.ExecuteSQL("INSERT INTO roles (rowid , name , active , loginrole) VALUES (? , ? , TRUE , FALSE)" , NO_USER_AUTH_id , NO_USER_AUTH_name)
+		    
 		    
 		    newdb.Close
 		    
@@ -228,10 +226,10 @@ Protected Class picoACL
 		    
 		    dbReconnect
 		    db.ExecuteSQL("INSERT INTO roles (name , active , loginrole , passwdhash) VALUES (? , ? , FALSE , NULL)" , GroupName , Active)
-		    db.Close
+		    dbClose
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error creating Group: " + e.Message , 3)
 		  end try
 		End Sub
@@ -252,7 +250,7 @@ Protected Class picoACL
 		    rows = db.SelectSQL("SELECT rowid , loginrole , name FROM roles WHERE name = ? OR name = ?" , UserName , GroupName)
 		    
 		    if rows.RowCount <> 2 then 
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Role not resolved." , 4)
 		    end if
 		    
@@ -267,7 +265,7 @@ Protected Class picoACL
 		    next
 		    
 		    if groupLoginRole then // group is a login role: you cannot assign a role as member of a user
-		      db.Close
+		      dbClose
 		      raise new RuntimeException("Invalid role assignment." , 5)
 		    end if
 		    
@@ -275,10 +273,10 @@ Protected Class picoACL
 		    
 		    db.ExecuteSQL("INSERT INTO memberships (roleid , memberof_roleid) VALUES (? , ?)" , userID , groupID)
 		    
-		    db.Close
+		    dbClose
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error Assigning Membership: " + e.Message , 6)
 		  end try
 		End Sub
@@ -290,10 +288,10 @@ Protected Class picoACL
 		    
 		    dbReconnect
 		    db.ExecuteSQL("INSERT INTO rights (service , right) VALUES (?,?)" , Service , Right)
-		    db.Close
+		    dbClose
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error creating Right: " + e.Message , 1)
 		  end try
 		End Sub
@@ -306,22 +304,38 @@ Protected Class picoACL
 		  try
 		    dbReconnect
 		    db.ExecuteSQL("INSERT INTO roles (name , active , loginrole , passwdhash) VALUES (? , ? , TRUE , ?)" , UserName , Active , passhash)
-		    db.Close
+		    dbClose
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error creating User: " + e.Message , 2)
 		  end try
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub dbReconnect()
-		  db.DatabaseFile = dbFile
-		  db.EncryptionKey = dbPasswd
-		  db.Connect
-		  db.ExecuteSQL("PRAGMA foreign_keys = ON")
+		Private Sub dbClose()
+		  if Connected then
+		    
+		    db.Close
+		    Connected = False
+		    
+		  end if
 		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub dbReconnect()
+		  if not Connected then
+		    
+		    db.DatabaseFile = dbFile
+		    db.EncryptionKey = dbPasswd
+		    db.Connect
+		    db.ExecuteSQL("PRAGMA foreign_keys = ON")
+		    Connected = true
+		    
+		  end if
 		  
 		End Sub
 	#tag EndMethod
@@ -338,7 +352,7 @@ Protected Class picoACL
 		    rows = db.SelectSQL("SELECT COUNT(*) FROM acl WHERE rowid  = ?" , ACLRecordID)
 		    
 		    if rows.ColumnAt(0).IntegerValue <> 1 then
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("ACL Record not resolved." , 18)
 		    end if
 		    
@@ -346,10 +360,10 @@ Protected Class picoACL
 		    
 		    db.ExecuteSQL("DELETE FROM acl WHERE rowid = ?" , ACLRecordID)
 		    
-		    db.Close
+		    dbClose
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error Deleting ACL record: " + e.Message , 19)
 		  end try
 		  
@@ -369,7 +383,7 @@ Protected Class picoACL
 		    rows = db.SelectSQL("SELECT rowid FROM rights WHERE service = ? AND right = ?" , Service , Right)
 		    
 		    if rows.RowCount <> 1 then 
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Right not resolved." , 7)
 		    end if
 		    
@@ -379,11 +393,11 @@ Protected Class picoACL
 		    
 		    db.ExecuteSQL("DELETE FROM rights WHERE rowid = ?" , rightID)
 		    
-		    db.Close
+		    dbClose
 		    
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error Deleting Right: " + e.Message , 16)
 		  end try
 		  
@@ -403,7 +417,7 @@ Protected Class picoACL
 		    rows = db.SelectSQL("SELECT rowid FROM roles WHERE name = ?" , RoleName)
 		    
 		    if rows.RowCount <> 1 then 
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Role not resolved." , 4)
 		    end if
 		    
@@ -413,11 +427,11 @@ Protected Class picoACL
 		    
 		    db.ExecuteSQL("DELETE FROM roles WHERE rowid = ?" , roleID)
 		    
-		    db.Close
+		    dbClose
 		    
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error Deleting Role: " + e.Message , 12)
 		  end try
 		  
@@ -425,7 +439,107 @@ Protected Class picoACL
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function GetRolenameFromID(RoleID as Integer) As String
+		Function EvaluateRequest(Service as String, Right as String, Resource as string, ReceivedCredentials as Boolean, optional KeepDbOpen as Boolean = false) As ReqEvalOutcomes
+		  // 1.Unsupported = No requested service/right is registered
+		  // 2.AuthNotRequired = No credentials are needed for this request
+		  // 3.AuthAllActiveUsers = All active users can access resource if they provide correct credentials
+		  // 4.AuthResolveForUser = Resolve authorization path for specific User
+		  // 5.Incomplete = Would have been 3 or 4 but no credentials are provided
+		  
+		  dim rows as RowSet
+		  dim RightIDs() as String //directly to string, so we won't have to convert
+		  dim NoAuth , AllowActiveUsers , DenyActiveUsers , ExplicitAuth as Boolean = false
+		  
+		  try
+		    
+		    dbReconnect
+		    
+		    // let's look if the appropriate righs are registered
+		    rows = db.SelectSQL("SELECT rowid FROM rights WHERE service = ? AND (right = ? OR right = ?)" , Service , Right , ANY_RIGHT)
+		    
+		    for each row as DatabaseRow in rows
+		      RightIDs.Add row.Column("rowid").StringValue
+		    next 
+		    
+		    if RightIDs.LastIndex < 0 then 
+		      if not KeepDbOpen then db.Close
+		      Return ReqEvalOutcomes.Unsupported
+		    end if
+		    
+		    // case for System Roles
+		    dim QueryForSystemRoles as String = "SELECT roleid , deny FROM acl WHERE rightid IN (" + String.FromArray(RightIDs , ",") + ") AND (resource = ? OR resource = ?)"
+		    
+		    rows = db.SelectSQL(QueryForSystemRoles , Resource , ANY_RESOURCE)
+		    
+		    for each row as DatabaseRow in rows
+		      select case row.Column("roleid").IntegerValue
+		      case NO_USER_AUTH_id
+		        NoAuth = true
+		      case ANY_USER_id
+		        if row.Column("deny").BooleanValue = false then AllowActiveUsers = true else DenyActiveUsers = true
+		      else // non-system roles
+		        ExplicitAuth = true
+		      end select
+		    next
+		    
+		    if not KeepDbOpen then db.Close
+		    
+		    // prioritize collected auth data
+		    
+		    if NoAuth then Return ReqEvalOutcomes.AuthNotRequired
+		    if DenyActiveUsers then Return ReqEvalOutcomes.Deny
+		    if AllowActiveUsers then
+		      if ReceivedCredentials then Return ReqEvalOutcomes.AuthAllActiveUsers else return ReqEvalOutcomes.Incomplete
+		    end if
+		    if ExplicitAuth then
+		      if ReceivedCredentials then Return ReqEvalOutcomes.AuthResolveForUser else return ReqEvalOutcomes.Incomplete
+		    end if
+		    
+		    Return ReqEvalOutcomes.Deny
+		    
+		  Catch e as DatabaseException
+		    dbClose
+		    Raise new RuntimeException("Authorization Error: " + e.Message , 15)
+		  end try
+		  
+		  
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetRoleIDFromName(RoleName as string, optional KeepDbOpen as Boolean = false) As integer
+		  dim rows as RowSet
+		  dim RoleID as integer
+		  
+		  try
+		    
+		    dbReconnect
+		    
+		    // look for the ID
+		    rows = db.SelectSQL("SELECT rowid FROM roles WHERE name = ?" , RoleName)
+		    
+		    if rows.RowCount <> 1 then 
+		      dbClose
+		      Raise new RuntimeException("Role not resolved." , 4)
+		    end if
+		    
+		    RoleID = rows.Column("rowid").IntegerValue
+		    
+		    if not KeepDbOpen then dbClose
+		    
+		  Catch e as DatabaseException
+		    dbClose
+		    Raise new RuntimeException("Error Resolving Role: " + e.Message , 17)
+		  end try
+		  
+		  Return RoleID
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetRolenameFromID(RoleID as Integer, optional KeepDbOpen as Boolean = false) As String
 		  dim rows as RowSet
 		  dim RoleName as String
 		  
@@ -437,17 +551,17 @@ Protected Class picoACL
 		    rows = db.SelectSQL("SELECT name FROM roles WHERE rowid = ?" , RoleID)
 		    
 		    if rows.RowCount <> 1 then 
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Role not resolved." , 4)
 		    end if
 		    
 		    RoleName = rows.Column("name").StringValue
 		    
-		    db.Close
+		    if not KeepDbOpen then dbClose
 		    
 		  Catch e as DatabaseException
-		    db.Close
-		    Raise new RuntimeException("Error Finding Role Name: " + e.Message , 17)
+		    dbClose
+		    Raise new RuntimeException("Error Resolving Role: " + e.Message , 17)
 		  end try
 		  
 		  Return RoleName
@@ -495,7 +609,7 @@ Protected Class picoACL
 		    rows = db.SelectSQL("SELECT rowid , name FROM roles WHERE name = ? OR name = ?" , MemberRole , GroupRole)
 		    
 		    if rows.RowCount <> 2 then 
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Role not resolved." , 4)
 		    end if
 		    
@@ -514,7 +628,7 @@ Protected Class picoACL
 		    rows = db.SelectSQL("SELECT rowid FROM memberships WHERE roleid = ? AND memberof_roleid = ?" , memberID , groupID)
 		    
 		    if rows.RowCount <> 1 then
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Membership not resolved." , 14)
 		    end if
 		    
@@ -524,11 +638,10 @@ Protected Class picoACL
 		    
 		    db.ExecuteSQL("DELETE FROM memberships WHERE rowid = ?" , membershipID)
 		    
-		    
-		    db.Close
+		    dbClose
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error Removing Membership: " + e.Message , 13)
 		  end try
 		End Sub
@@ -547,7 +660,7 @@ Protected Class picoACL
 		    rows = db.SelectSQL("SELECT rowid FROM roles WHERE name = ?" , RoleName)
 		    
 		    if rows.RowCount <> 1 then 
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Role not resolved." , 4)
 		    end if
 		    
@@ -557,11 +670,11 @@ Protected Class picoACL
 		    
 		    db.ExecuteSQL("UPDATE roles SET active = ? WHERE rowid = ?" , ActiveFlag , roleID)
 		    
-		    db.Close
+		    dbClose
 		    
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error setting Active Flag: " + e.Message , 10)
 		  end try
 		  
@@ -602,7 +715,7 @@ Protected Class picoACL
 		    rows = db.SelectSQL("SELECT rowid FROM roles WHERE name = ? AND loginrole = TRUE" , UserName)
 		    
 		    if rows.RowCount <> 1 then 
-		      db.Close
+		      dbClose
 		      Raise new RuntimeException("Role not resolved." , 4)
 		    end if
 		    
@@ -612,10 +725,10 @@ Protected Class picoACL
 		    
 		    db.ExecuteSQL("UPDATE roles SET passwdhash = ? WHERE rowid = ?" , passhash , roleID)
 		    
-		    db.Close
+		    dbClose
 		    
 		  Catch e as DatabaseException
-		    db.Close
+		    dbClose
 		    Raise new RuntimeException("Error Updating Password: " + e.Message , 11)
 		  end try
 		End Sub
@@ -635,7 +748,7 @@ Protected Class picoACL
 		    
 		  end try
 		  
-		  db.Close
+		  dbClose
 		  
 		  Return true
 		  
@@ -662,7 +775,7 @@ Protected Class picoACL
 		14 Membership not resolved
 		15 Authorization Error
 		16 Error Deleting Right
-		17 Error Finding Role Name
+		17 Error Resolving Role
 		18 ACL Record not resolved
 		19 Error Deleting ACL record
 		
@@ -695,6 +808,10 @@ Protected Class picoACL
 
 
 	#tag Property, Flags = &h21
+		Private Connected As Boolean
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private db As SQLiteDatabase
 	#tag EndProperty
 
@@ -713,8 +830,30 @@ Protected Class picoACL
 	#tag Constant, Name = ANY_RIGHT, Type = String, Dynamic = False, Default = \"<ANYRIGHT>", Scope = Public
 	#tag EndConstant
 
-	#tag Constant, Name = InitStatements, Type = String, Dynamic = False, Default = \"CREATE TABLE roles ( rowid INTEGER PRIMARY KEY AUTOINCREMENT \x2C name TEXT UNIQUE NOT NULL \x2C active BOOLEAN NOT NULL DEFAULT TRUE \x2C loginrole BOOLEAN NOT NULL DEFAULT TRUE \x2C passwdhash TEXT \x2C CHECK((loginrole \x3D TRUE AND passwdhash IS NOT NULL) OR (loginrole \x3D FALSE AND passwdhash IS NULL))\x2C CHECK(name !\x3D \'\') \x2C CHECK(passwdhash !\x3D \'\'));\r\nCREATE TABLE memberships ( rowid INTEGER PRIMARY KEY AUTOINCREMENT \x2C roleid INTEGER NOT NULL \x2C memberof_roleid INTEGER NOT NULL \x2C FOREIGN KEY(roleid) REFERENCES roles(rowid) \x2C FOREIGN KEY(memberof_roleid) REFERENCES roles(rowid) \x2C UNIQUE(roleid \x2C memberof_roleid) \x2C CHECK(roleid !\x3D memberof_roleid));\r\nCREATE TABLE rights ( rowid INTEGER PRIMARY KEY AUTOINCREMENT \x2C service TEXT NOT NULL \x2C right TEXT NOT NULL \x2C UNIQUE (service \x2C right) \x2C CHECK(service !\x3D \'\') \x2C CHECK(right !\x3D \'\'));\r\nCREATE TABLE acl ( rowid INTEGER PRIMARY KEY AUTOINCREMENT \x2C roleid INTEGER NOT NULL \x2C resource TEXT NOT NULL \x2C rightid INTEGER NOT NULL \x2C deny BOOLEAN NOT NULL DEFAULT FALSE \x2C FOREIGN KEY(roleid) REFERENCES roles(rowid) \x2C FOREIGN KEY(rightid) REFERENCES rights(rowid) \x2C UNIQUE(roleid \x2C resource \x2C rightid) \x2C CHECK(resource !\x3D \'\'));", Scope = Private
+	#tag Constant, Name = ANY_USER_id, Type = Double, Dynamic = False, Default = \"-1", Scope = Private
 	#tag EndConstant
+
+	#tag Constant, Name = ANY_USER_name, Type = String, Dynamic = False, Default = \"<ANYUSER>", Scope = Private
+	#tag EndConstant
+
+	#tag Constant, Name = InitTables, Type = String, Dynamic = False, Default = \"CREATE TABLE roles ( rowid INTEGER PRIMARY KEY AUTOINCREMENT \x2C name TEXT UNIQUE NOT NULL \x2C active BOOLEAN NOT NULL DEFAULT TRUE \x2C loginrole BOOLEAN NOT NULL DEFAULT TRUE \x2C passwdhash TEXT \x2C CHECK((loginrole \x3D TRUE AND passwdhash IS NOT NULL) OR (loginrole \x3D FALSE AND passwdhash IS NULL))\x2C CHECK(name !\x3D \'\') \x2C CHECK(passwdhash !\x3D \'\'));\r\nCREATE TABLE memberships ( rowid INTEGER PRIMARY KEY AUTOINCREMENT \x2C roleid INTEGER NOT NULL \x2C memberof_roleid INTEGER NOT NULL \x2C FOREIGN KEY(roleid) REFERENCES roles(rowid) \x2C FOREIGN KEY(memberof_roleid) REFERENCES roles(rowid) \x2C UNIQUE(roleid \x2C memberof_roleid) \x2C CHECK(roleid !\x3D memberof_roleid) \x2C CHECK(roleid > 0) \x2C CHECK(memberof_roleid > 0));\r\nCREATE TABLE rights ( rowid INTEGER PRIMARY KEY AUTOINCREMENT \x2C service TEXT NOT NULL \x2C right TEXT NOT NULL \x2C UNIQUE (service \x2C right) \x2C CHECK(service !\x3D \'\') \x2C CHECK(right !\x3D \'\'));\r\nCREATE TABLE acl ( rowid INTEGER PRIMARY KEY AUTOINCREMENT \x2C roleid INTEGER NOT NULL \x2C resource TEXT NOT NULL \x2C rightid INTEGER NOT NULL \x2C deny BOOLEAN NOT NULL DEFAULT FALSE \x2C FOREIGN KEY(roleid) REFERENCES roles(rowid) \x2C FOREIGN KEY(rightid) REFERENCES rights(rowid) \x2C UNIQUE(roleid \x2C resource \x2C rightid) \x2C CHECK(resource !\x3D \'\') \x2C CHECK((roleid < -1 AND deny \x3D FALSE) OR roleid > -2));\r\nCREATE TRIGGER NoDeleteSystemRoles BEFORE DELETE ON roles FOR EACH ROW WHEN (OLD.rowid < 0) BEGIN SELECT RAISE(ABORT \x2C \'Cannot Delete System Role\'); END;\r\nCREATE TRIGGER NoUpdateSystemRoles BEFORE UPDATE ON roles FOR EACH ROW WHEN (OLD.rowid < 0) BEGIN SELECT RAISE(ABORT \x2C \'Cannot Update System Role\'); END;", Scope = Private
+	#tag EndConstant
+
+	#tag Constant, Name = NO_USER_AUTH_id, Type = Double, Dynamic = False, Default = \"-2", Scope = Private
+	#tag EndConstant
+
+	#tag Constant, Name = NO_USER_AUTH_name, Type = String, Dynamic = False, Default = \"<NOAUTH>", Scope = Private
+	#tag EndConstant
+
+
+	#tag Enum, Name = ReqEvalOutcomes, Type = Integer, Flags = &h0
+		Unsupported
+		  AuthNotRequired
+		  AuthAllActiveUsers
+		  AuthResolveForUser
+		  Incomplete
+		Deny
+	#tag EndEnum
 
 
 	#tag ViewBehavior
