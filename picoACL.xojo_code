@@ -127,6 +127,35 @@ Protected Class picoACL
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function ConvertReqEvalToString(sample as ReqEvalOutcomes) As String
+		  select case sample
+		    
+		  case ReqEvalOutcomes.AuthAllActiveUsers
+		    Return "Authorize all active users if they present correct credentials"
+		    
+		  case ReqEvalOutcomes.AuthNotRequired
+		    Return "Open Access: Authentication not required"
+		    
+		  case ReqEvalOutcomes.AuthResolveForUser
+		    Return "Resolve authentication for given user if presents correct credentials"
+		    
+		  case ReqEvalOutcomes.Deny
+		    Return "Deny this request!"
+		    
+		  case ReqEvalOutcomes.Incomplete
+		    Return "Incomplete Request: Needs credentials that were not provided"
+		    
+		  case ReqEvalOutcomes.Unsupported
+		    Return "Unsupported Request: No such Service/Right"
+		    
+		  end Select
+		  
+		  
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub CreateACL(Service as String, Right as string, Resource as String, RoleName as string, optional Deny as Boolean = false)
 		  // an ACL is assigning a RIGHT to a ROLE, 
 		  // for a RESOURCE, made available through a SERVICE
@@ -313,8 +342,8 @@ Protected Class picoACL
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Sub dbClose()
+	#tag Method, Flags = &h0
+		Sub dbClose()
 		  if Connected then
 		    
 		    db.Close
@@ -462,7 +491,7 @@ Protected Class picoACL
 		    next 
 		    
 		    if RightIDs.LastIndex < 0 then 
-		      if not KeepDbOpen then db.Close
+		      dbClose
 		      Return ReqEvalOutcomes.Unsupported
 		    end if
 		    
@@ -495,7 +524,7 @@ Protected Class picoACL
 		      if ReceivedCredentials then Return ReqEvalOutcomes.AuthResolveForUser else return ReqEvalOutcomes.Incomplete
 		    end if
 		    
-		    Return ReqEvalOutcomes.Deny
+		    Return ReqEvalOutcomes.Deny  // just deny if none of the above applies
 		    
 		  Catch e as DatabaseException
 		    dbClose

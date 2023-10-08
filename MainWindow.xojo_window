@@ -1126,11 +1126,11 @@ Begin DesktopWindow MainWindow
          TabPanelIndex   =   2
          TabStop         =   True
          Tooltip         =   ""
-         Top             =   177
+         Top             =   220
          Transparent     =   False
          Underline       =   False
          Visible         =   True
-         Width           =   515
+         Width           =   575
          Begin DesktopTextField AuthResourceField
             AllowAutoDeactivate=   True
             AllowFocusRing  =   True
@@ -1166,7 +1166,7 @@ Begin DesktopWindow MainWindow
             TextAlignment   =   0
             TextColor       =   &c000000
             Tooltip         =   ""
-            Top             =   265
+            Top             =   308
             Transparent     =   False
             Underline       =   False
             ValidationMask  =   ""
@@ -1199,7 +1199,7 @@ Begin DesktopWindow MainWindow
             TabPanelIndex   =   2
             TabStop         =   True
             Tooltip         =   ""
-            Top             =   302
+            Top             =   345
             Transparent     =   False
             Underline       =   False
             Visible         =   True
@@ -1240,7 +1240,7 @@ Begin DesktopWindow MainWindow
             TextAlignment   =   0
             TextColor       =   &c000000
             Tooltip         =   ""
-            Top             =   265
+            Top             =   308
             Transparent     =   False
             Underline       =   False
             ValidationMask  =   ""
@@ -1282,7 +1282,7 @@ Begin DesktopWindow MainWindow
             TextAlignment   =   0
             TextColor       =   &c000000
             Tooltip         =   ""
-            Top             =   265
+            Top             =   308
             Transparent     =   False
             Underline       =   False
             ValidationMask  =   ""
@@ -1324,14 +1324,14 @@ Begin DesktopWindow MainWindow
             TextAlignment   =   0
             TextColor       =   &c000000
             Tooltip         =   ""
-            Top             =   213
+            Top             =   256
             Transparent     =   False
             Underline       =   False
             ValidationMask  =   ""
             Visible         =   True
             Width           =   150
          End
-         Begin DesktopLabel AuthNoUserLabel
+         Begin DesktopLabel AuthNoSysRolesDisclaimer
             AllowAutoDeactivate=   True
             Bold            =   False
             Enabled         =   True
@@ -1354,15 +1354,15 @@ Begin DesktopWindow MainWindow
             TabIndex        =   6
             TabPanelIndex   =   2
             TabStop         =   True
-            Text            =   "No User value tests whether resource requires User authorization at all."
+            Text            =   "Does not take into account Authorization assigned to System Roles. Invoke this after Evaluation."
             TextAlignment   =   0
             TextColor       =   &c000000
             Tooltip         =   ""
-            Top             =   213
+            Top             =   256
             Transparent     =   False
             Underline       =   False
             Visible         =   True
-            Width           =   312
+            Width           =   313
          End
       End
       Begin DesktopGroupBox AuthenticateGroup
@@ -1388,11 +1388,11 @@ Begin DesktopWindow MainWindow
          TabPanelIndex   =   2
          TabStop         =   True
          Tooltip         =   ""
-         Top             =   82
+         Top             =   404
          Transparent     =   False
          Underline       =   False
          Visible         =   True
-         Width           =   515
+         Width           =   575
          Begin DesktopTextField UserNameField
             AllowAutoDeactivate=   True
             AllowFocusRing  =   True
@@ -1428,7 +1428,7 @@ Begin DesktopWindow MainWindow
             TextAlignment   =   0
             TextColor       =   &c000000
             Tooltip         =   ""
-            Top             =   118
+            Top             =   440
             Transparent     =   False
             Underline       =   False
             ValidationMask  =   ""
@@ -1470,7 +1470,7 @@ Begin DesktopWindow MainWindow
             TextAlignment   =   0
             TextColor       =   &c000000
             Tooltip         =   ""
-            Top             =   118
+            Top             =   440
             Transparent     =   False
             Underline       =   False
             ValidationMask  =   ""
@@ -1503,7 +1503,7 @@ Begin DesktopWindow MainWindow
             TabPanelIndex   =   2
             TabStop         =   True
             Tooltip         =   ""
-            Top             =   118
+            Top             =   440
             Transparent     =   False
             Underline       =   False
             Visible         =   True
@@ -1871,6 +1871,223 @@ Begin DesktopWindow MainWindow
          Underline       =   False
          Visible         =   True
          Width           =   129
+      End
+      Begin DesktopGroupBox EvaluateGroup
+         AllowAutoDeactivate=   True
+         Bold            =   True
+         Caption         =   "Evaluate Authentication/Authorization Requirements for Service/Right/Resource"
+         Enabled         =   True
+         FontName        =   "System"
+         FontSize        =   14.0
+         FontUnit        =   0
+         Height          =   150
+         Index           =   -2147483648
+         InitialParent   =   "MainPanel"
+         Italic          =   False
+         Left            =   40
+         LockBottom      =   False
+         LockedInPosition=   False
+         LockLeft        =   True
+         LockRight       =   False
+         LockTop         =   True
+         Scope           =   0
+         TabIndex        =   2
+         TabPanelIndex   =   2
+         TabStop         =   True
+         Tooltip         =   ""
+         Top             =   58
+         Transparent     =   False
+         Underline       =   False
+         Visible         =   True
+         Width           =   575
+         Begin DesktopTextField EvalResourceField
+            AllowAutoDeactivate=   True
+            AllowFocusRing  =   True
+            AllowSpellChecking=   False
+            AllowTabs       =   False
+            BackgroundColor =   &cFFFFFF
+            Bold            =   False
+            Enabled         =   True
+            FontName        =   "System"
+            FontSize        =   0.0
+            FontUnit        =   0
+            Format          =   ""
+            HasBorder       =   True
+            Height          =   25
+            Hint            =   "Resource"
+            Index           =   -2147483648
+            InitialParent   =   "EvaluateGroup"
+            Italic          =   False
+            Left            =   384
+            LockBottom      =   False
+            LockedInPosition=   False
+            LockLeft        =   True
+            LockRight       =   False
+            LockTop         =   True
+            MaximumCharactersAllowed=   0
+            Password        =   False
+            ReadOnly        =   False
+            Scope           =   0
+            TabIndex        =   0
+            TabPanelIndex   =   2
+            TabStop         =   True
+            Text            =   ""
+            TextAlignment   =   0
+            TextColor       =   &c000000
+            Tooltip         =   ""
+            Top             =   126
+            Transparent     =   False
+            Underline       =   False
+            ValidationMask  =   ""
+            Visible         =   True
+            Width           =   150
+         End
+         Begin DesktopButton EvalBtn
+            AllowAutoDeactivate=   True
+            Bold            =   True
+            Cancel          =   False
+            Caption         =   "Check"
+            Default         =   False
+            Enabled         =   True
+            FontName        =   "System"
+            FontSize        =   0.0
+            FontUnit        =   0
+            Height          =   25
+            Index           =   -2147483648
+            InitialParent   =   "EvaluateGroup"
+            Italic          =   False
+            Left            =   384
+            LockBottom      =   False
+            LockedInPosition=   False
+            LockLeft        =   True
+            LockRight       =   False
+            LockTop         =   True
+            MacButtonStyle  =   0
+            Scope           =   0
+            TabIndex        =   1
+            TabPanelIndex   =   2
+            TabStop         =   True
+            Tooltip         =   ""
+            Top             =   163
+            Transparent     =   False
+            Underline       =   False
+            Visible         =   True
+            Width           =   151
+         End
+         Begin DesktopTextField EvalServiceField
+            AllowAutoDeactivate=   True
+            AllowFocusRing  =   True
+            AllowSpellChecking=   False
+            AllowTabs       =   False
+            BackgroundColor =   &cFFFFFF
+            Bold            =   False
+            Enabled         =   True
+            FontName        =   "System"
+            FontSize        =   0.0
+            FontUnit        =   0
+            Format          =   ""
+            HasBorder       =   True
+            Height          =   25
+            Hint            =   "Service"
+            Index           =   -2147483648
+            InitialParent   =   "EvaluateGroup"
+            Italic          =   False
+            Left            =   60
+            LockBottom      =   False
+            LockedInPosition=   False
+            LockLeft        =   True
+            LockRight       =   False
+            LockTop         =   True
+            MaximumCharactersAllowed=   0
+            Password        =   False
+            ReadOnly        =   False
+            Scope           =   0
+            TabIndex        =   2
+            TabPanelIndex   =   2
+            TabStop         =   True
+            Text            =   ""
+            TextAlignment   =   0
+            TextColor       =   &c000000
+            Tooltip         =   ""
+            Top             =   126
+            Transparent     =   False
+            Underline       =   False
+            ValidationMask  =   ""
+            Visible         =   True
+            Width           =   150
+         End
+         Begin DesktopTextField EvalRightField
+            AllowAutoDeactivate=   True
+            AllowFocusRing  =   True
+            AllowSpellChecking=   False
+            AllowTabs       =   False
+            BackgroundColor =   &cFFFFFF
+            Bold            =   False
+            Enabled         =   True
+            FontName        =   "System"
+            FontSize        =   0.0
+            FontUnit        =   0
+            Format          =   ""
+            HasBorder       =   True
+            Height          =   25
+            Hint            =   "Right"
+            Index           =   -2147483648
+            InitialParent   =   "EvaluateGroup"
+            Italic          =   False
+            Left            =   222
+            LockBottom      =   False
+            LockedInPosition=   False
+            LockLeft        =   True
+            LockRight       =   False
+            LockTop         =   True
+            MaximumCharactersAllowed=   0
+            Password        =   False
+            ReadOnly        =   False
+            Scope           =   0
+            TabIndex        =   3
+            TabPanelIndex   =   2
+            TabStop         =   True
+            Text            =   ""
+            TextAlignment   =   0
+            TextColor       =   &c000000
+            Tooltip         =   ""
+            Top             =   126
+            Transparent     =   False
+            Underline       =   False
+            ValidationMask  =   ""
+            Visible         =   True
+            Width           =   150
+         End
+         Begin DesktopCheckBox EvalCredentialsProvided
+            AllowAutoDeactivate=   True
+            Bold            =   False
+            Caption         =   "Request contains credentials"
+            Enabled         =   True
+            FontName        =   "System"
+            FontSize        =   14.0
+            FontUnit        =   0
+            Height          =   20
+            Index           =   -2147483648
+            InitialParent   =   "EvaluateGroup"
+            Italic          =   False
+            Left            =   60
+            LockBottom      =   False
+            LockedInPosition=   False
+            LockLeft        =   True
+            LockRight       =   False
+            LockTop         =   True
+            Scope           =   2
+            TabIndex        =   4
+            TabPanelIndex   =   2
+            TabStop         =   True
+            Tooltip         =   ""
+            Top             =   94
+            Transparent     =   False
+            Underline       =   False
+            Visible         =   True
+            VisualState     =   0
+            Width           =   475
+         End
       End
    End
 End
@@ -2520,6 +2737,14 @@ End
 		End Sub
 	#tag EndEvent
 #tag EndEvents
+#tag Events AuthResourceField
+	#tag Event
+		Function ConstructContextualMenu(base As DesktopMenuItem, x As Integer, y As Integer) As Boolean
+		  Return true
+		  
+		End Function
+	#tag EndEvent
+#tag EndEvents
 #tag Events AuthorizeBtn
 	#tag Event
 		Sub Pressed()
@@ -2555,6 +2780,14 @@ End
 		  AuthRightField.Text = selectedItem.Text.NthField(" -> " , 2)
 		  
 		  Return true
+		End Function
+	#tag EndEvent
+#tag EndEvents
+#tag Events AuthRightField
+	#tag Event
+		Function ConstructContextualMenu(base As DesktopMenuItem, x As Integer, y As Integer) As Boolean
+		  Return true
+		  
 		End Function
 	#tag EndEvent
 #tag EndEvents
@@ -2611,6 +2844,14 @@ End
 		  me.Text = selectedItem.Text
 		  me.SelectAll
 		  
+		  Return true
+		  
+		End Function
+	#tag EndEvent
+#tag EndEvents
+#tag Events PasswdField
+	#tag Event
+		Function ConstructContextualMenu(base As DesktopMenuItem, x As Integer, y As Integer) As Boolean
 		  Return true
 		  
 		End Function
@@ -2792,6 +3033,62 @@ End
 		Sub Opening()
 		  me.Text = me.Text + App.MajorVersion.ToString + "." + app.MinorVersion.ToString + "." + app.BugVersion.ToString + "." + app.NonReleaseVersion.ToString
 		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events EvalResourceField
+	#tag Event
+		Function ConstructContextualMenu(base As DesktopMenuItem, x As Integer, y As Integer) As Boolean
+		  Return true
+		  
+		End Function
+	#tag EndEvent
+#tag EndEvents
+#tag Events EvalBtn
+	#tag Event
+		Sub Pressed()
+		  dim acl as new picoACL(GetACLFile , ACLFileEncryptionPassword.Text)
+		  
+		  try
+		    
+		    dim EvalOutcome as picoACL.ReqEvalOutcomes = acl.EvaluateRequest(EvalServiceField.Text , EvalRightField.Text , EvalResourceField.Text , EvalCredentialsProvided.Value)
+		    
+		    MessageBox acl.ConvertReqEvalToString(EvalOutcome)
+		    
+		  Catch e as RuntimeException
+		    MessageBox "Error " + e.ErrorNumber.ToString + ": " + e.Message
+		  end try
+		  
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events EvalServiceField
+	#tag Event
+		Function ConstructContextualMenu(base As DesktopMenuItem, x As Integer, y As Integer) As Boolean
+		  for i as Integer = 0 to RightsList.LastRowIndex
+		    
+		    base.AddMenu(new DesktopMenuItem(RightsList.CellTextAt(i , 1) + " -> " + RightsList.CellTextAt(i , 2)))
+		    
+		  next i
+		  
+		  Return true
+		  
+		End Function
+	#tag EndEvent
+	#tag Event
+		Function ContextualMenuItemSelected(selectedItem As DesktopMenuItem) As Boolean
+		  me.Text = selectedItem.Text.NthField(" -> " , 1)
+		  EvalRightField.Text = selectedItem.Text.NthField(" -> " , 2)
+		  
+		  Return true
+		End Function
+	#tag EndEvent
+#tag EndEvents
+#tag Events EvalRightField
+	#tag Event
+		Function ConstructContextualMenu(base As DesktopMenuItem, x As Integer, y As Integer) As Boolean
+		  Return true
+		  
+		End Function
 	#tag EndEvent
 #tag EndEvents
 #tag ViewBehavior
